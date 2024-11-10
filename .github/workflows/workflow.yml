@@ -1,0 +1,64 @@
+name: Deploy Laravel Application to Production Server
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Schritt 1: Checkout des Codes aus dem Repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Schritt 2: Setup SSH Key für den Zugriff auf den Server
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ vars.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      # Schritt 3: PHP Setup
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+
+      # Schritt 4: Composer-Abhängigkeiten installieren
+      - name: Install Composer Dependencies
+        run: composer install --optimize-autoloader --no-dev --no-progress --no-interaction --prefer-dist
+
+      # Schritt 5: Node.js Setup
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # Schritt 6: NPM-Abhängigkeiten installieren
+      - name: Install NPM Dependencies
+        run: npm install
+
+      # Schritt 7: NPM-Assets bauen
+      - name: Build NPM Assets
+        run: npm run build
+
+      # Schritt 8: Dateien mit rsync auf den Server synchronisieren
+      - name: Synchronize Files To Server
+        run: |
+          rsync -avz --delete \
+            --exclude '.env' \
+            --exclude 'storage/' \
+            -e "ssh -i ~/.ssh/id_rsa -p 22" ./ ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}:${{ vars.SSH_PATH }}
+
+
+      # Schritt 9: Remote Artisan Befehle ausführen (Datenbankmigration und Optimierung)
+      - name: Run Remote/Artisan Commands
+        run: |
+          ssh -i ~/.ssh/id_rsa -p 22 ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} << 'EOF'
+            cd ${{ vars.SSH_PATH }}
+            php artisan migrate --force
+            php artisan optimize
+          EOF
