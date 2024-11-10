@@ -14,6 +14,7 @@ Route::prefix('v1')->group(function () {
 
         return $groceries;
     });
+    
     Route::get('/groceries/{search}', function ($search) {
         $groceries = Groceries::where('name', 'like', "%{$search}%")->get();
 
