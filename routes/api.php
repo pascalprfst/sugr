@@ -36,6 +36,11 @@ Route::middleware(\App\Http\Middleware\APIMiddleware::class)->group(function () 
                 'password' => Hash::make($request->password),
             ]);
 
+            return response()->json([
+                'message' => "User successfully registered",
+                'user' => $user,
+            ], 200);
+
         });
 
         Route::post('/login', function (Request $request) {

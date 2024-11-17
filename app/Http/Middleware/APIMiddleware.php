@@ -15,7 +15,7 @@ class APIMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if($request->bearerToken() !== 'hfkkskd675$5/9'){
+        if($request->bearerToken() !== 'dF3x7TpLzYqVn84RtP1GhKm6W9XzAQoMC2J5NyLBkX7WrZTpvFdYJ6nQ8LtP3C'){
             return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
 
