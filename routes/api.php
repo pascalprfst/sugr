@@ -61,6 +61,16 @@ Route::middleware(\App\Http\Middleware\APIMiddleware::class)->group(function () 
                 'message' => 'Invalid login credentials'
             ], 401);
         });
+
+
+        Route::get('/user/{id}/children', function (Request $request) {
+            $user = User::find($request->id);
+            $children = $user->children()->toArray();
+
+            if($user) {
+                return $children;
+            }
+        });
     });
 });
 
