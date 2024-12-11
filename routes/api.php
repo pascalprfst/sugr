@@ -16,6 +16,16 @@ Route::middleware(\App\Http\Middleware\APIMiddleware::class)->group(function () 
             return $groceries;
         });
 
+        Route::get('/user/{id}/children', function ($id) {
+            $user = User::find($id);
+            $children = $user->children;
+
+            return response()->json([
+                'user' => $user,
+                'children' => $children
+            ], 200);
+        });
+
         Route::get('/groceries/{search}', function ($search) {
             $groceries = Groceries::where('name', 'like', "%{$search}%")->get();
 
@@ -62,15 +72,6 @@ Route::middleware(\App\Http\Middleware\APIMiddleware::class)->group(function () 
             ], 401);
         });
 
-
-        Route::get('/user/{id}/children', function (Request $request) {
-            $user = User::find($request->id);
-            $children = $user->children()->toArray();
-
-            if($user) {
-                return $children;
-            }
-        });
     });
 });
 
